@@ -227,9 +227,9 @@ export default function Editor({ site }: { site: Site }) {
                 onChange={(e) => setPrompt(e.target.value)}
               />
               <button onClick={suggest} disabled={suggesting || !prompt.trim()} className="btn mt-3 w-full">
-                {suggesting ? "Reading the site's code…" : "✦ Fix with Claude"}
+                {suggesting ? "Reading the site's code…" : "Suggest fix"}
               </button>
-              {note && <p className="mt-3 text-blue-300">✦ {note}</p>}
+              {note && <p className="mt-3 text-blue-300">{note}</p>}
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-[100px_1fr] items-center gap-x-3 gap-y-3">
