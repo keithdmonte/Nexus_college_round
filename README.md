@@ -44,6 +44,8 @@ npx serve -l 5500            # store on http://localhost:5500
 
 Visual editor: open http://localhost:3000/editor. Use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
 
+Publish and rollback: open http://localhost:3000/versions. **Open preview** shows the drafts in a separate tab (only that tab sees them), **Publish** makes the working set live as a new version, and **Make vN live** switches to any version. The audit log is at http://localhost:3000/log.
+
 ## Docs
 
 | Doc | What |

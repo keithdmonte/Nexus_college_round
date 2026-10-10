@@ -80,6 +80,7 @@ nexus-patchwork/
 │       └── pr/route.ts
 ├── lib/
 │   ├── supabase.ts
+│   ├── json.ts                   # JSON-only body reader, safe-attribute rule
 │   ├── workingSet.ts             # Non-retired patches: shared by preview and publish
 │   ├── github.ts
 │   └── llm.ts
@@ -105,5 +106,6 @@ nexus-patchwork/
 
 - No login in the hackathon build: anyone who can reach the dashboard can edit patches. Acceptable on localhost only.
 - All Supabase access goes through API routes with the service role key. RLS enabled with no public policies, so the anon key cannot read or write tables.
-- No `script` patch type: patches cannot run arbitrary code on the site.
+- No `script` patch type: patches cannot run arbitrary code on the site. `attribute` patches cannot set `on*` handlers, `srcdoc`, or `javascript:` / `vbscript:` / `data:` values; both `/api/patches` and `snippet.js` enforce this.
+- Dashboard API routes accept only `Content-Type: application/json` and send no CORS headers, so other websites cannot call them from a visitor's browser (no text/plain CSRF).
 - `text` changes set `textContent`, never `innerHTML`.

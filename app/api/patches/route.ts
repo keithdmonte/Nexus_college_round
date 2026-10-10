@@ -1,4 +1,5 @@
 import { db } from "@/lib/supabase";
+import { readJson, safeAttr } from "@/lib/json";
 
 type Change =
   | { type: "text"; value: string }
@@ -22,7 +23,12 @@ function validChange(c: unknown): c is Change {
     case "hide":
       return true;
     case "attribute":
-      return typeof ch.name === "string" && ch.name !== "" && (typeof ch.value === "string" || ch.value === null);
+      return (
+        typeof ch.name === "string" &&
+        ch.name !== "" &&
+        (typeof ch.value === "string" || ch.value === null) &&
+        safeAttr(ch.name, ch.value)
+      );
     default:
       return false;
   }
@@ -39,7 +45,7 @@ function parse(body: Record<string, unknown> | null) {
 
 // POST { site_id, name, page?, target, changes } -> new draft patch.
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = await readJson(request);
   const fields = parse(body);
   if (typeof fields === "string") return Response.json({ error: fields }, { status: 400 });
   if (typeof body.site_id !== "string") return Response.json({ error: "site_id required" }, { status: 400 });
@@ -57,7 +63,7 @@ export async function POST(request: Request) {
 
 // PATCH { id, name, target, changes } -> update an existing patch.
 export async function PATCH(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = await readJson(request);
   const fields = parse(body);
   if (typeof fields === "string") return Response.json({ error: fields }, { status: 400 });
   if (typeof body.id !== "string") return Response.json({ error: "id required" }, { status: 400 });

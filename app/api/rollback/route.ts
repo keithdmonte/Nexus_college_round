@@ -1,8 +1,9 @@
 import { db } from "@/lib/supabase";
+import { readJson } from "@/lib/json";
 
 // POST { version_id } -> point the site's live version at any version (back or forward).
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = await readJson(request);
   if (typeof body?.version_id !== "string") return Response.json({ error: "version_id required" }, { status: 400 });
 
   const { data: version } = await db
