@@ -32,9 +32,9 @@
 1. Editor page loads the store in an iframe with `?pw_edit=<preview_token>`
 2. Snippet sees `pw_edit`, loads `editor.js` from the same origin as itself
 3. Click an element: `editor.js` sends `{type: "pw:select", target}` to the dashboard
-4. The editor has two modes: **Browse** (store works normally, e.g. open the bag drawer) and **Select** (clicks pick elements and are blocked from the store)
-5. Side panel edits: dashboard sends `{type: "pw:apply", changes}` back; `editor.js` applies them live
-6. Save: dashboard stores a draft patch via `/api/patches`
+4. The editor has two modes: **Browse** (store works normally, e.g. open the bag drawer) and **Select** (clicks pick elements and are blocked from the store). `editor.js` sends `{type: "pw:ready"}` on load; the dashboard replies with `{type: "pw:mode", mode}`
+5. Side panel edits: dashboard sends `{type: "pw:apply", changes}` (the full list) back; `editor.js` undoes the previous draft and applies them live with the snippet's own `apply()`
+6. Save: dashboard stores a draft patch via `POST /api/patches` (audit `created`); saving again updates it via `PATCH` (audit `edited`)
 
 Both sides check `event.origin` on every message: `editor.js` accepts only the dashboard origin, the dashboard accepts only the site's origin.
 

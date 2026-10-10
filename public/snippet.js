@@ -3,7 +3,7 @@
 // and re-applies when the page re-renders. If anything fails, the original page shows.
 (function () {
   if (window.__patchwork) return;
-  window.__patchwork = true;
+  window.__patchwork = {}; // editor.js reuses apply() from here
 
   var script = document.currentScript;
   var KEY = script && script.getAttribute("data-key");
@@ -104,6 +104,15 @@
         else el.setAttribute(ch.name, ch.value);
       }
     });
+  }
+
+  window.__patchwork.apply = apply;
+
+  // Inside the dashboard editor (?pw_edit=<token>): load editor.js from PATCHWORK.
+  if (new URLSearchParams(location.search).get("pw_edit")) {
+    var ed = document.createElement("script");
+    ed.src = API + "/editor.js";
+    document.documentElement.appendChild(ed);
   }
 
   function report(patch) {

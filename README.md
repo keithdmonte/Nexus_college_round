@@ -42,6 +42,8 @@ Demo store (separate repo). Its `index.html` loads `http://localhost:3000/snippe
 npx serve -l 5500            # store on http://localhost:5500
 ```
 
+Visual editor: open http://localhost:3000/editor. Use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
+
 ## Docs
 
 | Doc | What |
