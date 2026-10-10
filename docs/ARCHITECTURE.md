@@ -72,6 +72,7 @@ nexus-patchwork/
 │   ├── page.tsx                  # Dashboard home: site + patch list
 │   ├── editor/page.tsx           # Visual editor: store in iframe + side panel
 │   ├── versions/page.tsx         # Version list + Rollback
+│   ├── history/page.tsx          # Retired patches
 │   ├── log/page.tsx              # Audit log
 │   └── api/
 │       ├── live/route.ts
@@ -83,6 +84,7 @@ nexus-patchwork/
 │   ├── supabase.ts
 │   ├── json.ts                   # JSON-only body reader, safe-attribute rule
 │   ├── workingSet.ts             # Non-retired patches: shared by preview and publish
+│   ├── summarize.ts              # One-line summary of a patch's changes
 │   ├── github.ts
 │   └── llm.ts
 ├── public/

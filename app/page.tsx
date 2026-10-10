@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
+import { summarize } from "@/lib/summarize";
 import PatchCard from "./PatchCard";
 
 export default function Home({ searchParams }: PageProps<"/">) {
@@ -21,24 +22,6 @@ export default function Home({ searchParams }: PageProps<"/">) {
       </Suspense>
     </main>
   );
-}
-
-type Change =
-  | { type: "text"; value: string }
-  | { type: "style"; props: Record<string, string> }
-  | { type: "hide" }
-  | { type: "attribute"; name: string; value: string };
-
-// Short, readable list of what a patch changes, e.g. `color → var(--on-accent) · + data-checkout`.
-function summarize(changes: Change[]) {
-  return changes
-    .flatMap((c) => {
-      if (c.type === "text") return [`text → "${c.value}"`];
-      if (c.type === "style") return Object.entries(c.props).map(([k, v]) => `${k} → ${v}`);
-      if (c.type === "hide") return ["hide"];
-      return [`+ ${c.name}${c.value ? `="${c.value}"` : ""}`];
-    })
-    .join(" · ");
 }
 
 // Single-site build: the first (only) site's non-retired patches.
@@ -87,7 +70,7 @@ async function Patches({ searchParams }: { searchParams: PageProps<"/">["searchP
             name: p.name,
             status: p.status,
             prUrl: p.pr_url,
-            summary: summarize(p.changes as Change[]),
+            summary: summarize(p.changes),
             liveNumber: live && liveIds.has(p.id) ? live.number : null,
           }}
         />

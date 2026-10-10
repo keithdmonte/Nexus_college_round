@@ -84,6 +84,7 @@ Any site is patched by one tag in its `<head>` (in `<head>`, not before `</body>
 - **Patches** (http://localhost:3000): every non-retired patch with its status, PR link, **Make it permanent** and **Retire patch**.
 - **Editor** (`/editor`): use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
 - **Versions** (`/versions`): **Open preview** shows the drafts in a separate tab (only that tab sees them), **Publish** makes the working set live as a new version and offers to open a PR, **Make vN live** switches to any version.
+- **History** (`/history`): retired patches with what they changed, their PR link and when they were retired.
 - **Audit log** (`/log`): every create, edit, publish, rollback, PR and retire.
 - **Make it permanent**: PATCHWORK finds the matching files in the store repo, asks Claude for the code fix, shows the diff, and opens a PR on confirm. After merging, pull the store and retire the patch.
 

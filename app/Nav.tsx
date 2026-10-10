@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Patches" },
   { href: "/editor", label: "Editor" },
   { href: "/versions", label: "Versions" },
+  { href: "/history", label: "History" },
   { href: "/log", label: "Audit log" },
 ];
 
