@@ -69,6 +69,8 @@ export default function Editor({ site }: { site: Site }) {
   const [current, setCurrent] = useState<Current | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [textEditable, setTextEditable] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
 
   const changes = useMemo(() => (form && target ? buildChanges(form, target) : []), [form, target]);
@@ -89,6 +91,7 @@ export default function Editor({ site }: { site: Site }) {
       } else if (msg.type === "pw:select") {
         setTarget(msg.target);
         setCurrent(msg.current);
+        setTextEditable(msg.textEditable !== false);
         setForm(emptyForm(msg.target));
         setSavedId(null);
         setStatus("");
@@ -109,7 +112,8 @@ export default function Editor({ site }: { site: Site }) {
   }, [changes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
-    if (!form || !target) return;
+    if (!form || !target || saving) return;
+    setSaving(true);
     setStatus("Saving…");
     const res = await fetch("/api/patches", {
       method: savedId ? "PATCH" : "POST",
@@ -119,9 +123,10 @@ export default function Editor({ site }: { site: Site }) {
           ? { id: savedId, name: form.name, target, changes }
           : { site_id: site.id, name: form.name, page: "*", target, changes }
       ),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return setStatus(`Save failed: ${data.error ?? res.status}`);
+    }).catch(() => null);
+    const data = res ? await res.json().catch(() => ({})) : {};
+    setSaving(false);
+    if (!res?.ok) return setStatus(`Save failed: ${data.error ?? res?.status ?? "network error"}`);
     setSavedId(data.patch.id);
     setStatus(savedId ? "Draft updated" : "Saved as draft");
   }
@@ -162,7 +167,8 @@ export default function Editor({ site }: { site: Site }) {
               <input className="input" value={form.name} onChange={set("name")} />
             </Field>
             <Field label="Text">
-              <input className="input" value={form.text} onChange={set("text")} />
+              <input className="input disabled:bg-zinc-100" value={form.text} onChange={set("text")} disabled={!textEditable} />
+              {!textEditable && <span className="text-xs text-zinc-500">Has nested elements; text can only be changed on a single element.</span>}
             </Field>
             <ColorField label="Text colour" value={form.color} placeholder={current?.color} onChange={set("color")}
               onPick={(v) => setForm((f) => f && { ...f, color: v })} />
@@ -182,7 +188,7 @@ export default function Editor({ site }: { site: Site }) {
             </Field>
             <button
               onClick={save}
-              disabled={!changes.length || !form.name.trim()}
+              disabled={saving || !changes.length || !form.name.trim()}
               className="rounded bg-zinc-900 px-3 py-2 font-medium text-white disabled:opacity-40"
             >
               {savedId ? "Update draft" : "Save as draft"}

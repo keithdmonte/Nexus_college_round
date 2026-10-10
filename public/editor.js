@@ -92,6 +92,8 @@
       type: "pw:select",
       target: clues(el),
       current: { color: cs.color, backgroundColor: cs.backgroundColor, fontSize: cs.fontSize },
+      // A text change replaces all children, which would delete nested elements the site needs.
+      textEditable: el.children.length === 0,
     });
   }
 
