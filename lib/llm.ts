@@ -62,3 +62,49 @@ export function applyEdits(files: RepoFile[], edits: Edit[]) {
       .map((f) => ({ path: f.path, before: f.content, after: text.get(f.path)! })),
   };
 }
+
+const Fix = z.object({
+  summary: z.string(),
+  name: z.string(),
+  text: z.string().nullable(),
+  color: z.string().nullable(),
+  backgroundColor: z.string().nullable(),
+  fontSize: z.string().nullable(),
+  hide: z.boolean(),
+  attrName: z.string().nullable(),
+  attrValue: z.string().nullable(),
+});
+export type Fix = z.infer<typeof Fix>;
+
+const FIX_SYSTEM = `You help fix a live website with a PATCHWORK patch: changes applied to ONE selected element in the visitor's browser, without touching the site's code.
+You get the selected element (tag, text, classes, attributes, parent, selector), its current computed styles, the user's description of the problem, and the site's most relevant source files.
+
+Return only the changes that fix the described problem on this element, using these fields (null / false = no change):
+- text: new text content (only if the text itself is wrong)
+- color, backgroundColor, fontSize: CSS values. Prefer the site's own CSS variables (e.g. var(--name)) when the source defines a fitting one.
+- hide: true to hide the element
+- attrName / attrValue: set one attribute. Use the exact attribute name the site's code expects (read the source). attrValue may be "" for a boolean-style attribute.
+Never set event-handler attributes (on*), srcdoc, or javascript:/data: URLs.
+"name": a short patch name like "Fix price label". "summary": one short plain sentence (max 20 words) naming the cause, e.g. "The price label was hidden by a leftover display:none rule."`;
+
+// Ask Claude for runtime changes to the selected element that fix the described problem.
+export async function suggestFix(
+  input: { target: unknown; current: unknown; prompt: string },
+  files: RepoFile[],
+) {
+  const fileBlocks = files.map((f) => `<file path="${f.path}">\n${f.content}\n</file>`).join("\n\n");
+  const response = await client.messages.parse({
+    model: "claude-opus-5-5",
+    max_tokens: 4000,
+    output_config: { effort: "medium", format: zodOutputFormat(Fix) },
+    system: FIX_SYSTEM,
+    messages: [
+      {
+        role: "user",
+        content: `${fileBlocks}\n\n<element>\n${JSON.stringify({ target: input.target, current: input.current }, null, 2)}\n</element>\n\n<problem>\n${input.prompt}\n</problem>`,
+      },
+    ],
+  });
+  if (response.stop_reason === "refusal" || !response.parsed_output) throw new Error("no usable answer from Claude");
+  return response.parsed_output;
+}

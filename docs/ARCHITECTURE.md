@@ -62,6 +62,7 @@ Both sides check `event.origin` on every message: `editor.js` accepts only the d
 | `/api/publish` | POST | dashboard | Create version, set live |
 | `/api/rollback` | POST | dashboard | Set live to any version (back or forward) |
 | `/api/pr` | POST | dashboard | Propose edits (diff) / open PR |
+| `/api/suggest` | POST | dashboard | Natural-language fix: Claude reads the selected element, the problem description and the site's matching source files, returns form values (nothing saved) |
 
 ## Folder structure
 

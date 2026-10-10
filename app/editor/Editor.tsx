@@ -72,6 +72,9 @@ export default function Editor({ site }: { site: Site }) {
   const [textEditable, setTextEditable] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  const [note, setNote] = useState("");
 
   const changes = useMemo(() => (form && target ? buildChanges(form, target) : []), [form, target]);
 
@@ -95,6 +98,8 @@ export default function Editor({ site }: { site: Site }) {
         setForm(emptyForm(msg.target));
         setSavedId(null);
         setStatus("");
+        setPrompt("");
+        setNote("");
       }
     }
     window.addEventListener("message", onMessage);
@@ -129,6 +134,36 @@ export default function Editor({ site }: { site: Site }) {
     if (!res?.ok) return setStatus(`Save failed: ${data.error ?? res?.status ?? "network error"}`);
     setSavedId(data.patch.id);
     setStatus(savedId ? "Draft updated" : "Saved as draft");
+  }
+
+  // Natural-language fix: Claude reads the element and the site's code, then fills the form.
+  async function suggest() {
+    if (!target || !prompt.trim() || suggesting) return;
+    setSuggesting(true);
+    setNote("");
+    const res = await fetch("/api/suggest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ site_id: site.id, target, current, prompt }),
+    }).catch(() => null);
+    const data = res ? await res.json().catch(() => ({})) : {};
+    setSuggesting(false);
+    if (!res?.ok) return setNote(`Couldn't suggest a fix: ${data.error ?? "network error"}`);
+    const fix = data.fix;
+    setForm((f) =>
+      f && {
+        ...f,
+        name: fix.name || f.name,
+        text: textEditable && fix.text !== null ? fix.text : f.text,
+        color: fix.color ?? f.color,
+        backgroundColor: fix.backgroundColor ?? f.backgroundColor,
+        fontSize: fix.fontSize ?? f.fontSize,
+        hide: fix.hide || f.hide,
+        attrName: fix.attrName ?? f.attrName,
+        attrValue: fix.attrName ? (fix.attrValue ?? "") : f.attrValue,
+      }
+    );
+    setNote(fix.summary);
   }
 
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -182,6 +217,19 @@ export default function Editor({ site }: { site: Site }) {
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Step 3 · Fix it</p>
               <input className="mt-2 w-full bg-transparent text-xl font-bold outline-none" value={form.name} onChange={set("name")} aria-label="Patch name" />
               <p className="mt-1 break-all font-mono text-xs text-blue-300">{target.selector}</p>
+            </div>
+            <div className="border-b border-zinc-800 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Describe the problem</p>
+              <textarea
+                className="input mt-2 h-20 resize-none"
+                placeholder="e.g. the text is invisible and clicking does nothing"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+              <button onClick={suggest} disabled={suggesting || !prompt.trim()} className="btn mt-3 w-full">
+                {suggesting ? "Reading the site's code…" : "✦ Fix with Claude"}
+              </button>
+              {note && <p className="mt-3 text-blue-300">✦ {note}</p>}
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-[100px_1fr] items-center gap-x-3 gap-y-3">
