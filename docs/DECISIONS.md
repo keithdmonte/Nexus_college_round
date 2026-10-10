@@ -28,3 +28,4 @@ Decisions made during planning (2026-10-10), with the reason for each.
 | 22 | Broken is a flag (`last_broken_at`), not a status | One visitor's odd page should not disable a patch for everyone |
 | 23 | Preview and Publish both use the "working set": every non-retired patch | One clear rule: preview shows exactly what Publish would make live |
 | 24 | Bug A fix uses `var(--on-accent)`, not a hard-coded colour | Works in dark mode and matches the real code fix |
+| 25 | Snippet reports a patch broken only on a near-miss: something resembles the target (same text, or the saved selector matches) but scores below threshold. Target simply absent = skip silently | Elements like Checkout only exist after opening the bag drawer; reporting every no-match would flag patches on almost every page load |

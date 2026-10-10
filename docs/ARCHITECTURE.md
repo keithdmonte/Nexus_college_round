@@ -23,7 +23,7 @@
 2. `GET /api/live?key=<site_key>` returns the live version's frozen patches
 3. Snippet matches and applies each patch, then shows the page (or after ~1s regardless)
 4. `MutationObserver` re-applies patches when the page changes
-5. Patches with no confident match are skipped and reported via `POST /api/live`
+5. Patches with no confident match are skipped; near-misses (something resembles the target but scores too low) are reported via `POST /api/live`
 
 **Preview**
 - URL `?pw_preview=<preview_token>` makes the snippet request the **working set** (every non-retired patch, current edits included) instead of the live version. Only that viewer sees it.

@@ -36,7 +36,7 @@ Total ~10h against a 10-11h budget: almost no buffer. Estimates for Phases 1 and
   - score elements by clues, pick best above threshold
   - apply `text` / `style` / `hide` / `attribute`
   - `MutationObserver` (`childList` + `subtree` only, not attributes) re-applies after the store re-renders; skip elements already patched so it never loops on its own changes
-  - no match: skip and `POST /api/live` to set `last_broken_at`
+  - no match: skip; on a near-miss only, `POST /api/live` to set `last_broken_at` (decision 25)
   - if the fetch fails, show the original page
 
 **Done when:** a hand-written patch in Supabase makes the Checkout button visible and clickable on the `broken` store, clicking it shows "Order placed", and the fix survives opening and closing the bag drawer.

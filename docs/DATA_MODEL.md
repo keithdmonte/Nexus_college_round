@@ -91,6 +91,6 @@ Why a frozen copy: editing a patch later must not change what an old version con
 1. Try `selector` first; if exactly one element matches and its clues score high, use it
 2. Otherwise score every element of the target `tag`: text match weighs most, then attributes, then classes, then parent
 3. Best score wins if it is at least ~60% of the maximum possible score
-4. No winner: patch skipped and reported broken (`last_broken_at`)
+4. No winner: patch skipped. Reported broken (`last_broken_at`) only on a near-miss: an element resembles the target (same text, or the selector matches) but scores below the threshold. If nothing resembles it, the element is just not on the page right now (e.g. drawer closed) and nothing is reported
 
 `var(--on-accent)` uses the store's own colour token, so the fix also works in dark mode and matches what the real code fix will be.
