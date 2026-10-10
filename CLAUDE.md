@@ -12,6 +12,7 @@ Hackathon project: fix a live website without touching its code. A site adds one
 ## How to work
 
 - Follow `docs/PHASES.md` in order. A phase is done only when its **Done when** check passes. Commit after each phase.
+- Commits and PRs must have NO AI attribution: no `Co-Authored-By: Claude` trailer, no "Generated with Claude Code" line. Commit as the user only.
 - Ask the user before any decision not covered by the docs. Do not guess or add scope. Features in `docs/ROADMAP.md` are not built unless the user asks.
 - If a decision changes, update the docs in the same commit (always `docs/DECISIONS.md`).
 - After each phase, report time spent vs estimate so scope can be cut early (cut order is in `docs/PHASES.md`).
@@ -23,8 +24,6 @@ Hackathon project: fix a live website without touching its code. A site adds one
 Next.js (App Router) + TypeScript + Tailwind, Supabase, Anthropic API, GitHub API. `public/snippet.js` and `public/editor.js` are plain JavaScript with no build step.
 
 ## Commands
-
-_Fill in during Phase 0._
 
 - Dashboard: `npm run dev` (http://localhost:3000)
 - Store (in `northfold_store`): `npx serve -l 5500`

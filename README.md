@@ -27,7 +27,8 @@ Next.js (App Router) + TypeScript + Tailwind, Supabase (Postgres), plain JavaScr
 
 ## Setup
 
-_To be completed in Phase 0._
+1. Create a Supabase project. In its SQL editor run `supabase/schema.sql`, then `supabase/seed.sql` (Northfold site + empty v0, set live).
+2. Install and configure:
 
 ```bash
 npm install
@@ -35,7 +36,7 @@ cp .env.example .env.local   # fill in values, see docs/ARCHITECTURE.md
 npm run dev                  # dashboard on http://localhost:3000
 ```
 
-Demo store (separate repo):
+Demo store (separate repo). Its `index.html` loads `http://localhost:3000/snippet.js` with the seeded site key. Run it from inside `northfold_store`:
 
 ```bash
 npx serve -l 5500            # store on http://localhost:5500
