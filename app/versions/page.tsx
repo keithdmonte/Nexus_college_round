@@ -45,7 +45,7 @@ async function Versions() {
           {working?.length ?? 0} patch(es) would go live
           {drafts?.length ? `, including ${drafts.length} draft(s): ${drafts.map((d) => d.name).join(", ")}` : ""}.
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <PublishButton siteId={site.id} />
           <a href={previewUrl.toString()} target="_blank" rel="noreferrer" className="underline">
             Open preview

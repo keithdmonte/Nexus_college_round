@@ -80,3 +80,22 @@ export async function PATCH(request: Request) {
   await db.from("audit_log").insert({ site_id: patch.site_id, action: "edited", patch_id: patch.id, details: { name: patch.name } });
   return Response.json({ patch });
 }
+
+// DELETE { id } -> retire a patch. It stays in old versions but leaves the working set,
+// so the next publish drops it.
+export async function DELETE(request: Request) {
+  const body = await readJson(request);
+  if (typeof body?.id !== "string") return Response.json({ error: "id required" }, { status: 400 });
+
+  const { data: patch, error } = await db
+    .from("patches")
+    .update({ status: "retired", updated_at: new Date().toISOString() })
+    .eq("id", body.id)
+    .select("id, site_id, name")
+    .maybeSingle();
+  if (error) return Response.json({ error: "update failed" }, { status: 500 });
+  if (!patch) return Response.json({ error: "unknown patch" }, { status: 404 });
+
+  await db.from("audit_log").insert({ site_id: patch.site_id, action: "retired", patch_id: patch.id, details: { name: patch.name } });
+  return Response.json({ ok: true });
+}

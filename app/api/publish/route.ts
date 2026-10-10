@@ -43,5 +43,9 @@ export async function POST(request: Request) {
     version_id: version.id,
     details: { number, patches: patches.map((p) => p.name) },
   });
-  return Response.json({ version });
+  // Live patches with no PR yet: the dashboard offers to make them permanent.
+  const { data: unfixed } = ids.length
+    ? await db.from("patches").select("id, name").in("id", ids).is("pr_url", null).order("created_at")
+    : { data: [] };
+  return Response.json({ version, unfixed: unfixed ?? [] });
 }

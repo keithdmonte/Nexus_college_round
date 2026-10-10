@@ -99,6 +99,7 @@ nexus-patchwork/
 | `SUPABASE_URL` | API routes |
 | `SUPABASE_SERVICE_ROLE_KEY` | API routes only, never sent to the browser |
 | `ANTHROPIC_API_KEY` | `lib/llm.ts` |
+| `ANTHROPIC_WORKSPACE_ID` | `lib/llm.ts`. Only needed when the key is organization-scoped; sent as `anthropic-workspace-id` |
 | `GITHUB_TOKEN` | `lib/github.ts`. Fine-grained token, `northfold_store` only, Contents + Pull requests: read/write |
 | `NEXT_PUBLIC_APP_URL` | Snippet tag and editor origin checks (`http://localhost:3000`) |
 
