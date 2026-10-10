@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
 
+export const metadata: Metadata = { title: "Audit log" };
+
 export default function LogPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl p-6 text-sm text-zinc-900">
-      <h1 className="mb-4 text-xl font-semibold">
-        <Link href="/" className="text-zinc-400">PATCHWORK</Link> / Audit log
-      </h1>
+    <main className="mx-auto w-full max-w-3xl p-6 text-sm">
+      <h1 className="mb-4 text-xl font-semibold">Audit log</h1>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
         <Log />
       </Suspense>

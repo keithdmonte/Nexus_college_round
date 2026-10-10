@@ -4,7 +4,7 @@ Fix a live website without touching its code or redeploying it.
 
 A site adds one `<script>` tag. That script fetches **patches** from PATCHWORK and applies them in the visitor's browser: change text, fix styles, hide elements, fix attributes. Publish a patch and every visitor gets the fix within one page load. Roll back in one click. When ready, PATCHWORK can open a GitHub pull request that makes the fix permanent in the real code.
 
-> Status: hackathon build in progress. Setup steps below are filled in as phases land.
+> Status: hackathon build. Runs locally: dashboard on :3000, demo store on :5500.
 
 ## How it works
 
@@ -27,24 +27,67 @@ Next.js (App Router) + TypeScript + Tailwind, Supabase (Postgres), plain JavaScr
 
 ## Setup
 
-1. Create a Supabase project. In its SQL editor run `supabase/schema.sql`, then `supabase/seed.sql` (Northfold site + empty v0, set live).
-2. Install and configure:
+Needs Node 20+, a Supabase project, an Anthropic API key and a GitHub account that owns the store repo.
+
+### 1. Supabase
+
+1. Create a Supabase project.
+2. In its SQL editor run `supabase/schema.sql` (4 tables, RLS on with no public policies).
+3. Run `supabase/seed.sql`. It adds the Northfold site (`url` `http://localhost:5500`, site key `pw_live_c6a694dd6e73e913`, `github_repo` `keithdmonte/northfold_store`) and an empty v0 set live. Change `github_repo` if your store repo lives elsewhere.
+
+### 2. Environment
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in values, see docs/ARCHITECTURE.md
-npm run dev                  # dashboard on http://localhost:3000
+cp .env.example .env.local
 ```
 
-Demo store (separate repo). Its `index.html` loads `http://localhost:3000/snippet.js` with the seeded site key. Run it from inside `northfold_store`:
+| Var | Value |
+|---|---|
+| `SUPABASE_URL` | Project URL, `https://<project-ref>.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Project settings → API → service role key. Used only by API routes; never reaches the browser |
+| `ANTHROPIC_API_KEY` | Anthropic Console API key (used by "Make it permanent") |
+| `ANTHROPIC_WORKSPACE_ID` | Only if the key is organization-scoped: the workspace ID, sent as the `anthropic-workspace-id` header. Leave empty for a normal workspace key |
+| `GITHUB_TOKEN` | Fine-grained personal access token, **Only select repositories** → `northfold_store`, permissions **Contents: Read and write** and **Pull requests: Read and write**. Nothing else |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` |
+
+Never commit `.env.local`.
+
+### 3. Run the dashboard
 
 ```bash
-npx serve -l 5500            # store on http://localhost:5500
+npm run dev                  # http://localhost:3000
 ```
 
-Visual editor: open http://localhost:3000/editor. Use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
+### 4. Run the demo store
 
-Publish and rollback: open http://localhost:3000/versions. **Open preview** shows the drafts in a separate tab (only that tab sees them), **Publish** makes the working set live as a new version, and **Make vN live** switches to any version. The audit log is at http://localhost:3000/log.
+The store is a separate repo (`northfold_store`) with tags `good` and `broken`. Clone it next to this repo, then:
+
+```bash
+cd northfold_store
+git checkout -f broken       # the staged bad deploy
+npx serve -l 5500            # http://localhost:5500
+```
+
+### 5. The snippet tag
+
+Any site is patched by one tag in its `<head>` (in `<head>`, not before `</body>`, so the page stays hidden until patches apply, max ~1s). The store already has it:
+
+```html
+<script src="http://localhost:3000/snippet.js" data-key="pw_live_c6a694dd6e73e913"></script>
+```
+
+`data-key` is the site's `site_key` from the `sites` table. If PATCHWORK is down or slow, the original page shows normally.
+
+## Using it
+
+- **Patches** (http://localhost:3000): every non-retired patch with its status, PR link, **Make it permanent** and **Retire patch**.
+- **Editor** (`/editor`): use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
+- **Versions** (`/versions`): **Open preview** shows the drafts in a separate tab (only that tab sees them), **Publish** makes the working set live as a new version and offers to open a PR, **Make vN live** switches to any version.
+- **Audit log** (`/log`): every create, edit, publish, rollback, PR and retire.
+- **Make it permanent**: PATCHWORK finds the matching files in the store repo, asks Claude for the code fix, shows the diff, and opens a PR on confirm. After merging, pull the store and retire the patch.
+
+The demo script and rehearsal checklist are in [docs/DEMO.md](docs/DEMO.md).
 
 ## Docs
 

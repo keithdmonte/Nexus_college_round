@@ -1,7 +1,10 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
 import Editor from "./Editor";
+
+export const metadata: Metadata = { title: "Editor" };
 
 export default function EditorPage() {
   return (

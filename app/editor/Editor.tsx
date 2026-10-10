@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 
 type Site = { id: string; name: string; url: string; preview_token: string };
 type Target = {
@@ -136,12 +135,10 @@ export default function Editor({ site }: { site: Site }) {
     setForm((f) => f && { ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
 
   return (
-    <div className="flex h-screen bg-white text-zinc-900">
+    <div className="flex h-full">
       <div className="flex flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-2 text-sm">
-          <span className="font-semibold">PATCHWORK editor</span>
-          <span className="text-zinc-500">{site.name}</span>
-          <Link href="/versions" className="text-zinc-500 underline">Versions</Link>
+          <span className="font-medium">{site.name}</span>
           <div className="ml-auto flex overflow-hidden rounded border border-zinc-300">
             {(["browse", "select"] as const).map((m) => (
               <button

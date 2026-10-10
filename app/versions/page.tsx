@@ -1,16 +1,16 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
 import { workingSet } from "@/lib/workingSet";
 import { PublishButton, RollbackButton } from "./Actions";
 
+export const metadata: Metadata = { title: "Versions" };
+
 export default function VersionsPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl p-6 text-sm text-zinc-900">
-      <h1 className="mb-4 text-xl font-semibold">
-        <Link href="/" className="text-zinc-400">PATCHWORK</Link> / Versions
-      </h1>
+    <main className="mx-auto w-full max-w-3xl p-6 text-sm">
+      <h1 className="mb-4 text-xl font-semibold">Versions</h1>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
         <Versions />
       </Suspense>

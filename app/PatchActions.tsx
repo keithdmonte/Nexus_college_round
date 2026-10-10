@@ -36,7 +36,7 @@ export function MakePermanent({ patchId, prUrl, autoStart }: { patchId: string; 
   if (opened)
     return (
       <a href={opened} target="_blank" rel="noreferrer" className="underline">
-        PR opened
+        View PR ↗
       </a>
     );
 
