@@ -38,6 +38,13 @@ export default function PatchCard({ patch, previewUrl }: { patch: CardPatch; pre
 
   function label(i: number) {
     if (i === 2 && patch.liveNumber !== null) return `Live v${patch.liveNumber}`;
+    // Preview isn't recorded, so a draft can go straight on to Publish (on the Versions page).
+    if (i === 2 && current === 1)
+      return (
+        <Link href="/versions" className="btn-ghost">
+          Publish →
+        </Link>
+      );
     if (i === 3 && patch.prUrl)
       return (
         <a href={patch.prUrl} target="_blank" rel="noreferrer" className="underline underline-offset-4">
