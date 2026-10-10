@@ -1,4 +1,5 @@
 import { db } from "@/lib/supabase";
+import { workingSet } from "@/lib/workingSet";
 
 // Called by snippet.js from the customer's site, so CORS is open.
 const CORS = {
@@ -16,31 +17,40 @@ export function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS });
 }
 
-// GET /api/live?key=<site_key> -> the live version's frozen patches.
+// GET /api/live?key=<site_key>[&preview=<preview_token>]
+// -> the live version's frozen patches, or the working set (every non-retired patch) with a valid preview token.
 export async function GET(request: Request) {
-  const key = new URL(request.url).searchParams.get("key");
+  const params = new URL(request.url).searchParams;
+  const key = params.get("key");
+  const preview = params.get("preview");
   if (!key) return json({ error: "missing key" }, 400);
 
   const { data: site, error } = await db
     .from("sites")
-    .select("live_version_id")
+    .select("id, live_version_id, preview_token")
     .eq("site_key", key)
     .maybeSingle();
   if (error) return json({ error: "lookup failed" }, 500);
   if (!site) return json({ error: "unknown key" }, 404);
-  if (!site.live_version_id) return json({ patches: [] });
 
-  const { data: version, error: vErr } = await db
-    .from("versions")
-    .select("patches")
-    .eq("id", site.live_version_id)
-    .single();
-  if (vErr) return json({ error: "lookup failed" }, 500);
+  let patches: Array<Record<string, unknown>>;
+  if (preview) {
+    if (preview !== site.preview_token) return json({ error: "bad preview token" }, 403);
+    const { data, error: pErr } = await workingSet(site.id);
+    if (pErr) return json({ error: "lookup failed" }, 500);
+    patches = data;
+  } else {
+    if (!site.live_version_id) return json({ patches: [] });
+    const { data: version, error: vErr } = await db
+      .from("versions")
+      .select("patches")
+      .eq("id", site.live_version_id)
+      .single();
+    if (vErr) return json({ error: "lookup failed" }, 500);
+    patches = version.patches;
+  }
 
-  const patches = (version.patches as Array<Record<string, unknown>>).map(
-    ({ id, page, target, changes }) => ({ id, page, target, changes })
-  );
-  return json({ patches });
+  return json({ patches: patches.map(({ id, page, target, changes }) => ({ id, page, target, changes })) });
 }
 
 // POST /api/live { key, patch_id } -> flag a patch as broken for this visitor.

@@ -29,3 +29,4 @@ Decisions made during planning (2026-10-10), with the reason for each.
 | 23 | Preview and Publish both use the "working set": every non-retired patch | One clear rule: preview shows exactly what Publish would make live |
 | 24 | Bug A fix uses `var(--on-accent)`, not a hard-coded colour | Works in dark mode and matches the real code fix |
 | 25 | Snippet reports a patch broken only on a near-miss: something resembles the target (same text, or the saved selector matches) but scores below threshold. Target simply absent = skip silently | Elements like Checkout only exist after opening the bag drawer; reporting every no-match would flag patches on almost every page load |
+| 26 | The editor iframe (`?pw_edit=`) loads the working set, same as preview | Saved drafts stay visible while editing, so new edits build on what Publish would make live, not on a stale live version |

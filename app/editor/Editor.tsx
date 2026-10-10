@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 
 type Site = { id: string; name: string; url: string; preview_token: string };
 type Target = {
@@ -140,6 +141,7 @@ export default function Editor({ site }: { site: Site }) {
         <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-2 text-sm">
           <span className="font-semibold">PATCHWORK editor</span>
           <span className="text-zinc-500">{site.name}</span>
+          <Link href="/versions" className="text-zinc-500 underline">Versions</Link>
           <div className="ml-auto flex overflow-hidden rounded border border-zinc-300">
             {(["browse", "select"] as const).map((m) => (
               <button

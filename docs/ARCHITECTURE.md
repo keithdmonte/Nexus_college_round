@@ -27,6 +27,8 @@
 
 **Preview**
 - URL `?pw_preview=<preview_token>` makes the snippet request the **working set** (every non-retired patch, current edits included) instead of the live version. Only that viewer sees it.
+- The snippet sends the token as `GET /api/live?key=...&preview=<token>` and keeps it in `sessionStorage` (per tab) so it survives the store's navigation. A wrong token gets 403; the snippet drops the stored token and shows the original page.
+- The editor iframe (`?pw_edit=<preview_token>`) also gets the working set (decision 26).
 
 **Editing**
 1. Editor page loads the store in an iframe with `?pw_edit=<preview_token>`
@@ -40,7 +42,8 @@ Both sides check `event.origin` on every message: `editor.js` accepts only the d
 
 **Publish / rollback**
 - Publish: copy the working set (all `draft` + `published` patches) into a new `versions` row, mark them `published`, set `sites.live_version_id`
-- Rollback: set `sites.live_version_id` to an earlier version. Nothing is rebuilt.
+- Rollback: set `sites.live_version_id` to any version, earlier or later. Nothing is rebuilt.
+- Both live on the versions page (`/versions`), which also links to the preview URL.
 
 **Patch to PR**
 1. List repo files via GitHub API, skip `node_modules`, build output, minified files
@@ -57,7 +60,7 @@ Both sides check `event.origin` on every message: `editor.js` accepts only the d
 | `/api/live` | POST | snippet | Report a patch as broken (sets `last_broken_at`) |
 | `/api/patches` | GET / POST / PATCH / DELETE | dashboard | Manage patches |
 | `/api/publish` | POST | dashboard | Create version, set live |
-| `/api/rollback` | POST | dashboard | Set live to an earlier version |
+| `/api/rollback` | POST | dashboard | Set live to any version (back or forward) |
 | `/api/pr` | POST | dashboard | Propose edits (diff) / open PR |
 
 ## Folder structure
@@ -77,6 +80,7 @@ nexus-patchwork/
 │       └── pr/route.ts
 ├── lib/
 │   ├── supabase.ts
+│   ├── workingSet.ts             # Non-retired patches: shared by preview and publish
 │   ├── github.ts
 │   └── llm.ts
 ├── public/

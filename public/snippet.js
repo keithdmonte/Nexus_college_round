@@ -108,8 +108,21 @@
 
   window.__patchwork.apply = apply;
 
-  // Inside the dashboard editor (?pw_edit=<token>): load editor.js from PATCHWORK.
-  if (new URLSearchParams(location.search).get("pw_edit")) {
+  // Preview (?pw_preview=<token>) and the dashboard editor (?pw_edit=<token>) both get the
+  // working set. The preview token is kept in sessionStorage so it survives the store's navigation.
+  var params = new URLSearchParams(location.search);
+  var EDIT = params.get("pw_edit");
+  var PREVIEW_KEY = "pw_preview";
+  var preview = null;
+  try {
+    if (params.get("pw_preview")) sessionStorage.setItem(PREVIEW_KEY, params.get("pw_preview"));
+    preview = EDIT || sessionStorage.getItem(PREVIEW_KEY);
+  } catch (e) {
+    preview = EDIT || params.get("pw_preview");
+  }
+
+  // Inside the dashboard editor: load editor.js from PATCHWORK.
+  if (EDIT) {
     var ed = document.createElement("script");
     ed.src = API + "/editor.js";
     document.documentElement.appendChild(ed);
@@ -148,8 +161,11 @@
     new MutationObserver(run).observe(document.documentElement, { childList: true, subtree: true });
   }
 
-  fetch(API + "/api/live?key=" + encodeURIComponent(KEY))
+  fetch(API + "/api/live?key=" + encodeURIComponent(KEY) + (preview ? "&preview=" + encodeURIComponent(preview) : ""))
     .then(function (res) {
+      if (res.status === 403) {
+        try { sessionStorage.removeItem(PREVIEW_KEY); } catch (e) {} // stale token: next load is a normal visit
+      }
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     })
