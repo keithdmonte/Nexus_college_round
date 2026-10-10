@@ -2,12 +2,20 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
-import { MakePermanent, RetireButton } from "./PatchActions";
+import PatchCard from "./PatchCard";
 
 export default function Home() {
   return (
-    <main className="mx-auto w-full max-w-3xl p-6 text-sm">
-      <h1 className="mb-4 text-xl font-semibold">Patches</h1>
+    <main className="mx-auto w-full max-w-5xl p-10 text-sm">
+      <div className="mb-8 flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight">Patches</h1>
+          <p className="mt-1 text-zinc-500">Fixes running in your visitors&apos; browsers.</p>
+        </div>
+        <Link href="/editor" className="btn">
+          + New patch
+        </Link>
+      </div>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
         <Patches />
       </Suspense>
@@ -15,41 +23,71 @@ export default function Home() {
   );
 }
 
-const badge: Record<string, string> = {
-  draft: "bg-amber-100 text-amber-800",
-  published: "bg-green-100 text-green-800",
-};
+type Change =
+  | { type: "text"; value: string }
+  | { type: "style"; props: Record<string, string> }
+  | { type: "hide" }
+  | { type: "attribute"; name: string; value: string };
+
+// Short, readable list of what a patch changes, e.g. `color → var(--on-accent) · + data-checkout`.
+function summarize(changes: Change[]) {
+  return changes
+    .flatMap((c) => {
+      if (c.type === "text") return [`text → "${c.value}"`];
+      if (c.type === "style") return Object.entries(c.props).map(([k, v]) => `${k} → ${v}`);
+      if (c.type === "hide") return ["hide"];
+      return [`+ ${c.name}${c.value ? `="${c.value}"` : ""}`];
+    })
+    .join(" · ");
+}
 
 // Single-site build: the first (only) site's non-retired patches.
 async function Patches() {
   await connection();
-  const { data: site } = await db.from("sites").select("id").limit(1).maybeSingle();
-  if (!site) return <p className="text-red-600">No site found. Seed the sites table first.</p>;
+  const { data: site } = await db.from("sites").select("id, url, preview_token, live_version_id").limit(1).maybeSingle();
+  if (!site) return <p className="text-red-400">No site found. Seed the sites table first.</p>;
 
-  const { data: patches } = await db
-    .from("patches")
-    .select("id, name, status, pr_url")
-    .eq("site_id", site.id)
-    .neq("status", "retired")
-    .order("created_at");
+  const [{ data: patches }, { data: live }] = await Promise.all([
+    db
+      .from("patches")
+      .select("id, name, status, pr_url, changes")
+      .eq("site_id", site.id)
+      .neq("status", "retired")
+      .order("created_at"),
+    site.live_version_id
+      ? db.from("versions").select("number, patches").eq("id", site.live_version_id).maybeSingle()
+      : { data: null },
+  ]);
   if (!patches?.length)
     return (
       <p className="text-zinc-500">
-        No patches yet. <Link href="/editor" className="underline">Open the editor</Link> to create one.
+        No patches yet.{" "}
+        <Link href="/editor" className="text-blue-300 underline underline-offset-4">
+          Open the editor
+        </Link>{" "}
+        to create one.
       </p>
     );
 
+  const liveIds = new Set(((live?.patches ?? []) as Array<{ id: string }>).map((p) => p.id));
+  const previewUrl = new URL(site.url);
+  previewUrl.searchParams.set("pw_preview", site.preview_token);
+
   return (
-    <ul className="divide-y divide-zinc-200 rounded border border-zinc-200">
+    <ul className="space-y-4">
       {patches.map((p) => (
-        <li key={p.id} className="flex flex-col gap-2 p-3">
-          <div className="flex items-center gap-3">
-            <span className="flex-1 font-medium">{p.name}</span>
-            <span className={`rounded px-2 py-1 text-xs font-medium ${badge[p.status] ?? "bg-zinc-100 text-zinc-700"}`}>{p.status}</span>
-            <RetireButton patchId={p.id} />
-          </div>
-          <MakePermanent patchId={p.id} prUrl={p.pr_url} />
-        </li>
+        <PatchCard
+          key={p.id}
+          previewUrl={previewUrl.toString()}
+          patch={{
+            id: p.id,
+            name: p.name,
+            status: p.status,
+            prUrl: p.pr_url,
+            summary: summarize(p.changes as Change[]),
+            liveNumber: live && liveIds.has(p.id) ? live.number : null,
+          }}
+        />
       ))}
     </ul>
   );

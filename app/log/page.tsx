@@ -7,8 +7,8 @@ export const metadata: Metadata = { title: "Audit log" };
 
 export default function LogPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl p-6 text-sm">
-      <h1 className="mb-4 text-xl font-semibold">Audit log</h1>
+    <main className="mx-auto w-full max-w-5xl p-10 text-sm">
+      <h1 className="mb-8 text-4xl font-extrabold tracking-tight">Audit log</h1>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
         <Log />
       </Suspense>
@@ -22,6 +22,26 @@ type Row = {
   created_at: string;
   details: Record<string, unknown>;
   patches: { name: string } | null;
+};
+
+const icons: Record<string, string> = {
+  created: "+",
+  edited: "✎",
+  published: "↑",
+  rolled_back: "↺",
+  pr_opened: "PR",
+  retired: "✓",
+  reported_broken: "!",
+};
+
+const labels: Record<string, string> = {
+  created: "Created",
+  edited: "Edited",
+  published: "Published",
+  rolled_back: "Rolled back",
+  pr_opened: "PR opened",
+  retired: "Retired",
+  reported_broken: "Reported broken",
 };
 
 function describe(r: Row) {
@@ -40,7 +60,7 @@ function describe(r: Row) {
 async function Log() {
   await connection();
   const { data: site } = await db.from("sites").select("id").limit(1).maybeSingle();
-  if (!site) return <p className="text-red-600">No site found. Seed the sites table first.</p>;
+  if (!site) return <p className="text-red-400">No site found. Seed the sites table first.</p>;
 
   const { data: rows } = await db
     .from("audit_log")
@@ -52,12 +72,20 @@ async function Log() {
 
   if (!rows?.length) return <p className="text-zinc-500">Nothing logged yet.</p>;
   return (
-    <ul className="divide-y divide-zinc-200 rounded border border-zinc-200">
+    <ul className="relative space-y-5 pl-10">
+      <span className="absolute top-1 bottom-1 left-[11px] w-px bg-zinc-800" />
       {rows.map((r) => (
-        <li key={r.id} className="flex gap-4 p-3">
-          <span className="w-44 shrink-0 text-zinc-500">{new Date(r.created_at).toLocaleString()}</span>
-          <span className="w-28 shrink-0 font-medium">{r.action.replace("_", " ")}</span>
-          <span className="text-zinc-700">{describe(r)}</span>
+        <li key={r.id} className="relative flex items-baseline gap-2">
+          <span
+            className={`absolute -left-10 grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold ${
+              r.action === "published" ? "bg-accent text-white" : "border border-zinc-700 bg-zinc-900 text-blue-300"
+            }`}
+          >
+            {icons[r.action] ?? "•"}
+          </span>
+          <span className="font-semibold">{labels[r.action] ?? r.action.replace("_", " ")}</span>
+          <span className="text-zinc-400">· {describe(r)}</span>
+          <span className="ml-2 text-zinc-600">{new Date(r.created_at).toLocaleString()}</span>
         </li>
       ))}
     </ul>

@@ -20,8 +20,8 @@
       "box-sizing:border-box;border:2px solid " + color + ";background:" + color + "1a";
     return b;
   }
-  var hoverBox = box("#3b82f6");
-  var selectBox = box("#f59e0b");
+  var hoverBox = box("#93c5fd");
+  var selectBox = box("#2563eb");
 
   function place(b, el) {
     if (!el || !el.isConnected) return (b.style.display = "none");

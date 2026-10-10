@@ -137,63 +137,87 @@ export default function Editor({ site }: { site: Site }) {
   return (
     <div className="flex h-full">
       <div className="flex flex-1 flex-col">
-        <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-2 text-sm">
+        <div className="flex items-center gap-3 border-b border-zinc-800 px-6 py-3 text-sm">
           <span className="font-medium">{site.name}</span>
-          <div className="ml-auto flex overflow-hidden rounded border border-zinc-300">
-            {(["browse", "select"] as const).map((m) => (
+          <span className="text-zinc-500">
+            {mode === "browse" ? "Use the store normally to reach the element" : "Click any element to edit it"}
+          </span>
+          <div className="ml-auto flex rounded-lg border border-zinc-800 bg-zinc-900 p-1">
+            {(["browse", "select"] as const).map((m, i) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`px-3 py-1 capitalize ${mode === m ? "bg-zinc-900 text-white" : "bg-white"}`}
+                className={`rounded-md px-4 py-1 capitalize ${mode === m ? "bg-accent font-semibold text-white" : "text-zinc-500"}`}
               >
-                {m}
+                {i + 1} · {m}
               </button>
             ))}
           </div>
         </div>
-        <iframe ref={iframe} src={src} className="flex-1 border-0" title="Site preview" />
+        <div className="flex min-h-0 flex-1 flex-col bg-zinc-900/60 p-5">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl shadow-2xl ring-1 ring-zinc-700">
+            <div className="flex h-8 items-center gap-2 bg-zinc-800 px-3 font-mono text-xs text-zinc-400">
+              <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
+              <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
+              <span className="ml-2">{site.url}</span>
+            </div>
+            <iframe ref={iframe} src={src} className="flex-1 border-0" title="Site preview" />
+          </div>
+        </div>
       </div>
 
-      <aside className="w-80 overflow-y-auto border-l border-zinc-200 p-4 text-sm">
+      <aside className="flex w-96 flex-col border-l border-zinc-800 text-sm">
         {!target || !form ? (
-          <p className="text-zinc-500">
-            Use <b>Browse</b> to get to the element (e.g. open the bag), then switch to <b>Select</b> and click it.
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <div className="rounded bg-zinc-100 p-2 font-mono text-xs break-all">{target.selector}</div>
-            <Field label="Patch name">
-              <input className="input" value={form.name} onChange={set("name")} />
-            </Field>
-            <Field label="Text">
-              <input className="input disabled:bg-zinc-100" value={form.text} onChange={set("text")} disabled={!textEditable} />
-              {!textEditable && <span className="text-xs text-zinc-500">Has nested elements; text can only be changed on a single element.</span>}
-            </Field>
-            <ColorField label="Text colour" value={form.color} placeholder={current?.color} onChange={set("color")}
-              onPick={(v) => setForm((f) => f && { ...f, color: v })} />
-            <ColorField label="Background" value={form.backgroundColor} placeholder={current?.backgroundColor}
-              onChange={set("backgroundColor")} onPick={(v) => setForm((f) => f && { ...f, backgroundColor: v })} />
-            <Field label="Font size">
-              <input className="input" value={form.fontSize} placeholder={current?.fontSize} onChange={set("fontSize")} />
-            </Field>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.hide} onChange={set("hide")} /> Hide element
-            </label>
-            <Field label="Attribute">
-              <div className="flex gap-2">
-                <input className="input" placeholder="name" value={form.attrName} onChange={set("attrName")} />
-                <input className="input" placeholder="value" value={form.attrValue} onChange={set("attrValue")} />
-              </div>
-            </Field>
-            <button
-              onClick={save}
-              disabled={saving || !changes.length || !form.name.trim()}
-              className="rounded bg-zinc-900 px-3 py-2 font-medium text-white disabled:opacity-40"
-            >
-              {savedId ? "Update draft" : "Save as draft"}
-            </button>
-            {status && <p className="text-zinc-600">{status}</p>}
+          <div className="p-6 text-zinc-400">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">How to fix something</p>
+            <ol className="mt-3 list-decimal space-y-2 pl-4">
+              <li><b className="text-zinc-200">Browse</b> to the broken element (e.g. add an item and open the bag).</li>
+              <li>Switch to <b className="text-zinc-200">Select</b> and click it.</li>
+              <li>Fix it here. Changes show live in the page.</li>
+            </ol>
           </div>
+        ) : (
+          <>
+            <div className="border-b border-zinc-800 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Step 3 · Fix it</p>
+              <input className="mt-2 w-full bg-transparent text-xl font-bold outline-none" value={form.name} onChange={set("name")} aria-label="Patch name" />
+              <p className="mt-1 break-all font-mono text-xs text-blue-300">{target.selector}</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-[100px_1fr] items-center gap-x-3 gap-y-3">
+                <Field label="Text">
+                  <input className="input" value={form.text} onChange={set("text")} disabled={!textEditable} />
+                </Field>
+                {!textEditable && (
+                  <span className="col-start-2 -mt-1 text-xs text-zinc-500">Has nested elements; text can only be changed on a single element.</span>
+                )}
+                <ColorField label="Text colour" value={form.color} placeholder={current?.color} onChange={set("color")}
+                  onPick={(v) => setForm((f) => f && { ...f, color: v })} />
+                <ColorField label="Background" value={form.backgroundColor} placeholder={current?.backgroundColor}
+                  onChange={set("backgroundColor")} onPick={(v) => setForm((f) => f && { ...f, backgroundColor: v })} />
+                <Field label="Font size">
+                  <input className="input" value={form.fontSize} placeholder={current?.fontSize} onChange={set("fontSize")} />
+                </Field>
+                <Field label="Attribute">
+                  <div className="flex gap-2">
+                    <input className="input font-mono" placeholder="name" value={form.attrName} onChange={set("attrName")} />
+                    <input className="input" placeholder="value" value={form.attrValue} onChange={set("attrValue")} />
+                  </div>
+                </Field>
+                <Field label="Hide">
+                  <input type="checkbox" className="h-4 w-4 justify-self-start accent-accent" checked={form.hide} onChange={set("hide")} />
+                </Field>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 border-t border-zinc-800 p-6">
+              <span className="flex-1 text-xs text-zinc-500">
+                {status || `${changes.length} change${changes.length === 1 ? "" : "s"} · live in the page`}
+              </span>
+              <button onClick={save} disabled={saving || !changes.length || !form.name.trim()} className="btn">
+                {savedId ? "Update draft" : "Save draft"}
+              </button>
+            </div>
+          </>
         )}
       </aside>
     </div>
@@ -202,10 +226,10 @@ export default function Editor({ site }: { site: Site }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-zinc-500">{label}</span>
+    <>
+      <span className="text-zinc-500">{label}</span>
       {children}
-    </label>
+    </>
   );
 }
 
@@ -221,7 +245,7 @@ function ColorField(props: {
     <Field label={props.label}>
       <div className="flex gap-2">
         <input className="input" value={props.value} placeholder={props.placeholder} onChange={props.onChange} />
-        <input type="color" className="h-8 w-8 shrink-0" onChange={(e) => props.onPick(e.target.value)} />
+        <input type="color" className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-zinc-800 bg-zinc-900 p-1" onChange={(e) => props.onPick(e.target.value)} />
       </div>
     </Field>
   );

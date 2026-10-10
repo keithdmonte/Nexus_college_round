@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import Nav from "./Nav";
+import LiveBadge from "./LiveBadge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,8 +26,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex h-full flex-col bg-white font-sans text-zinc-900">
-        <Nav />
+      <body className="flex h-full flex-col font-sans">
+        <Nav
+          live={
+            <Suspense>
+              <LiveBadge />
+            </Suspense>
+          }
+        />
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </body>
     </html>
