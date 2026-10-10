@@ -7,7 +7,7 @@ Decisions made during planning (2026-10-10), with the reason for each.
 | 1 | Build budget ~10-11h of a ~19h hackathon, one developer | Scope must fit one person |
 | 2 | Core 4 first (visual patching, preview, versioned deploy + rollback, element tracking), then Patch to PR, then thin audit log | Core is what the demo needs; standout comes after it works |
 | 3 | Standout feature: **Patch to PR** (not AI self-healing) | Biggest moment on stage: a temporary fix becomes a real PR |
-| 4 | Patch to PR is optional: prompt after publish (Yes / Not now) + "Make it permanent" button per patch | Developer decides when a fix should become permanent |
+| 4 | Patch to PR is optional: prompt after publish (Yes / Not now) + "Make it permanent" button per patch. Yes jumps to the patch's card, so the diff and Open PR live in one place | Developer decides when a fix should become permanent; one place avoids two parallel proposals for the same patch |
 | 5 | Patch to PR must handle multi-file repos (rank files by clue hits) | Real sites are not single files |
 | 6 | Demo store in its own repo `northfold_store`, private, split into `index.html` / `styles.css` / `app.js` | Mirrors a real customer repo; PRs target the customer, not PATCHWORK |
 | 7 | Store runs locally; hosting optional at the end | Patch to PR needs GitHub, not a hosted site |

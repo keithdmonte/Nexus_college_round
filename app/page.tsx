@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { db } from "@/lib/supabase";
 import PatchCard from "./PatchCard";
 
-export default function Home() {
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
     <main className="mx-auto w-full max-w-5xl p-10 text-sm">
       <div className="mb-8 flex items-end justify-between">
@@ -17,7 +17,7 @@ export default function Home() {
         </Link>
       </div>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
-        <Patches />
+        <Patches searchParams={searchParams} />
       </Suspense>
     </main>
   );
@@ -42,8 +42,10 @@ function summarize(changes: Change[]) {
 }
 
 // Single-site build: the first (only) site's non-retired patches.
-async function Patches() {
+async function Patches({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   await connection();
+  const { permanent } = await searchParams;
+  const autoStart = new Set(typeof permanent === "string" ? permanent.split(",") : []);
   const { data: site } = await db.from("sites").select("id, url, preview_token, live_version_id").limit(1).maybeSingle();
   if (!site) return <p className="text-red-400">No site found. Seed the sites table first.</p>;
 
@@ -79,6 +81,7 @@ async function Patches() {
         <PatchCard
           key={p.id}
           previewUrl={previewUrl.toString()}
+          autoStart={autoStart.has(p.id)}
           patch={{
             id: p.id,
             name: p.name,

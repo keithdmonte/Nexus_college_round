@@ -76,28 +76,6 @@ export function ProposalView({ p }: { p: Permanent }) {
   );
 }
 
-// Button + diff in one block, used by the post-publish prompt on /versions.
-export function MakePermanent({ patchId, autoStart }: { patchId: string; autoStart?: boolean }) {
-  const p = usePermanent(patchId, null, autoStart);
-  if (p.opened)
-    return (
-      <a href={p.opened} target="_blank" rel="noreferrer" className="text-blue-300 underline underline-offset-4">
-        View PR ↗
-      </a>
-    );
-  return (
-    <div className="flex flex-col gap-3">
-      {!p.proposal && (
-        <div className="flex items-center gap-3">
-          <MakePermanentButton p={p} />
-          {p.error && <span className="text-red-400">{p.error}</span>}
-        </div>
-      )}
-      {p.proposal && <ProposalView p={p} />}
-    </div>
-  );
-}
-
 function prefix(mark: string, text: string) {
   return text.split("\n").map((l) => mark + l).join("\n");
 }

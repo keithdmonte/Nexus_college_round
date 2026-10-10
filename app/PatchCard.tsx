@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MakePermanentButton, ProposalView, RetireButton, usePermanent } from "./PatchActions";
 
 export type CardPatch = {
@@ -15,8 +17,13 @@ export type CardPatch = {
 const STEPS = ["Draft", "Preview", "Live", "PR", "Retired"];
 
 // One patch as a pipeline: Draft → Preview → Live → PR → Retired, next action at the current step.
-export default function PatchCard({ patch, previewUrl }: { patch: CardPatch; previewUrl: string }) {
-  const p = usePermanent(patch.id, patch.prUrl);
+// autoStart: arrived from the post-publish "open a PR?" prompt, so start the proposal right away.
+export default function PatchCard({ patch, previewUrl, autoStart }: { patch: CardPatch; previewUrl: string; autoStart?: boolean }) {
+  const p = usePermanent(patch.id, patch.prUrl, autoStart && !patch.prUrl);
+  const router = useRouter();
+  useEffect(() => {
+    if (autoStart) router.replace("/", { scroll: false });
+  }, [autoStart, router]);
   const current = patch.prUrl ? 4 : patch.liveNumber !== null ? 3 : patch.status === "published" ? 2 : 1;
 
   function action(i: number) {

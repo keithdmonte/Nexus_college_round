@@ -8,7 +8,7 @@ Judges remember a story, not a feature list. Target: ~3 minutes.
 2. **Hotfix (60s):** open PATCHWORK; in Browse mode add an item and open the bag, then switch to Select mode and click Checkout. Type the problem ("the checkout text is invisible and clicking it does nothing") and click **Suggest fix**: Claude reads the store's code and fills in text colour `var(--on-accent)` and the `data-checkout` attribute. The fix shows live in the editor. Save, preview, publish v1. Fallback if the suggestion is slow: type the two values by hand.
 3. **Proof (20s):** refresh the real store in a normal tab. Checkout is visible; click it: "Order placed". No code changed, nothing redeployed.
 4. **Safety (20s):** show the versions page; roll back to v0 (broken again), then roll forward to v1 (fixed). Show the audit log.
-5. **Make it permanent (60s):** the prompt asks "Want me to open a PR?" Click Yes. PATCHWORK finds `styles.css` and `app.js`, shows the diff, opens a real GitHub PR. Merge it, pull, retire the patch: the store works on its own.
+5. **Make it permanent (60s):** the prompt asks "Want me to open a PR?" Click Yes: it jumps to the patch on the Patches page, where PATCHWORK finds `styles.css` and `app.js`, shows the diff, opens a real GitHub PR. Merge it, pull, retire the patch: the store works on its own.
 6. **Close (10s):** one script tag, live fixes in seconds, permanent fixes in one click.
 
 Fallback if Patch to PR misbehaves live: show a PR opened during rehearsal.
