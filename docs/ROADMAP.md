@@ -6,6 +6,7 @@
 2. **Collaboration and conflicts:** login (Supabase Auth); each patch has an author and a status (draft, in review, approved). Two patches changing the same element and the same property are flagged, and someone picks one.
 3. **Natural-language patches:** type "hide the top banner and make Checkout bigger"; AI drafts the patch and the developer reviews it.
 4. **Script patches:** a patch type that runs custom JS on the element. Powerful but risky (runs any code on the live site).
+5. **Connect a site:** an onboarding screen to add a site (name, URL, GitHub repo) and copy its snippet tag, instead of editing the `sites` row by hand. Goes with multi-site support (today the dashboard uses the first site only).
 
 ## Cut (mention as next steps in the pitch)
 
