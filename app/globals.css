@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
+  --background: #1f1f1f;
   --foreground: #f4f4f5;
 }
 
@@ -9,6 +9,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: #2563eb;
+  /* Grey (VS Code-like) instead of near-black: surfaces and borders one step lighter than the page. */
+  --color-zinc-900: #282828;
+  --color-zinc-800: #383838;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
