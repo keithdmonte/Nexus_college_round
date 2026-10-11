@@ -222,7 +222,7 @@ export default function Editor({ site }: { site: Site }) {
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Describe the problem</p>
               <textarea
                 className="input mt-2 h-20 resize-none"
-                placeholder="e.g. the text is invisible and clicking does nothing"
+                placeholder="What looks wrong? e.g. the label is cut off on small screens"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
