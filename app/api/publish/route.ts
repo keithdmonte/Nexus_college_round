@@ -1,9 +1,12 @@
 import { db } from "@/lib/supabase";
+import { currentUser, unauthorized } from "@/lib/auth";
 import { readJson } from "@/lib/json";
 import { workingSet } from "@/lib/workingSet";
 
 // POST { site_id, note? } -> freeze the working set into a new version and make it live.
 export async function POST(request: Request) {
+  const user = await currentUser();
+  if (!user) return unauthorized();
   const body = await readJson(request);
   if (typeof body?.site_id !== "string") return Response.json({ error: "site_id required" }, { status: 400 });
   const siteId: string = body.site_id;
@@ -42,6 +45,7 @@ export async function POST(request: Request) {
     action: "published",
     version_id: version.id,
     details: { number, patches: patches.map((p) => p.name) },
+    actor: user.name,
   });
   // Live patches with no PR yet: the dashboard offers to make them permanent.
   const { data: unfixed } = ids.length

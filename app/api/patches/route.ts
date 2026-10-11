@@ -1,4 +1,5 @@
 import { db } from "@/lib/supabase";
+import { currentUser, unauthorized } from "@/lib/auth";
 import { readJson, safeAttr } from "@/lib/json";
 
 type Change =
@@ -45,6 +46,8 @@ function parse(body: Record<string, unknown> | null) {
 
 // POST { site_id, name, page?, target, changes } -> new draft patch.
 export async function POST(request: Request) {
+  const user = await currentUser();
+  if (!user) return unauthorized();
   const body = await readJson(request);
   const fields = parse(body);
   if (typeof fields === "string") return Response.json({ error: fields }, { status: 400 });
@@ -52,17 +55,19 @@ export async function POST(request: Request) {
 
   const { data: patch, error } = await db
     .from("patches")
-    .insert({ ...fields, site_id: body.site_id, page: typeof body.page === "string" ? body.page : "*", status: "draft" })
+    .insert({ ...fields, site_id: body.site_id, page: typeof body.page === "string" ? body.page : "*", status: "draft", created_by: user.name })
     .select()
     .single();
   if (error) return Response.json({ error: "insert failed" }, { status: 500 });
 
-  await db.from("audit_log").insert({ site_id: patch.site_id, action: "created", patch_id: patch.id, details: { name: patch.name } });
+  await db.from("audit_log").insert({ site_id: patch.site_id, action: "created", patch_id: patch.id, details: { name: patch.name }, actor: user.name });
   return Response.json({ patch });
 }
 
 // PATCH { id, name, target, changes } -> update an existing patch.
 export async function PATCH(request: Request) {
+  const user = await currentUser();
+  if (!user) return unauthorized();
   const body = await readJson(request);
   const fields = parse(body);
   if (typeof fields === "string") return Response.json({ error: fields }, { status: 400 });
@@ -77,13 +82,15 @@ export async function PATCH(request: Request) {
   if (error) return Response.json({ error: "update failed" }, { status: 500 });
   if (!patch) return Response.json({ error: "unknown patch" }, { status: 404 });
 
-  await db.from("audit_log").insert({ site_id: patch.site_id, action: "edited", patch_id: patch.id, details: { name: patch.name } });
+  await db.from("audit_log").insert({ site_id: patch.site_id, action: "edited", patch_id: patch.id, details: { name: patch.name }, actor: user.name });
   return Response.json({ patch });
 }
 
 // DELETE { id } -> retire a patch. It stays in old versions but leaves the working set,
 // so the next publish drops it.
 export async function DELETE(request: Request) {
+  const user = await currentUser();
+  if (!user) return unauthorized();
   const body = await readJson(request);
   if (typeof body?.id !== "string") return Response.json({ error: "id required" }, { status: 400 });
 
@@ -96,6 +103,6 @@ export async function DELETE(request: Request) {
   if (error) return Response.json({ error: "update failed" }, { status: 500 });
   if (!patch) return Response.json({ error: "unknown patch" }, { status: 404 });
 
-  await db.from("audit_log").insert({ site_id: patch.site_id, action: "retired", patch_id: patch.id, details: { name: patch.name } });
+  await db.from("audit_log").insert({ site_id: patch.site_id, action: "retired", patch_id: patch.id, details: { name: patch.name }, actor: user.name });
   return Response.json({ ok: true });
 }

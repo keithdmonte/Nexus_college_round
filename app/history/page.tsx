@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { db } from "@/lib/supabase";
 import { summarize } from "@/lib/summarize";
+import RevertButton from "./RevertButton";
 
 export const metadata: Metadata = { title: "History" };
 
@@ -26,7 +27,7 @@ async function Retired() {
 
   const { data: patches } = await db
     .from("patches")
-    .select("id, name, pr_url, changes, created_at, updated_at")
+    .select("id, name, pr_url, revert_pr_url, created_by, changes, created_at, updated_at")
     .eq("site_id", site.id)
     .eq("status", "retired")
     .order("updated_at", { ascending: false });
@@ -48,9 +49,13 @@ async function Retired() {
             )}
           </div>
           <p className="mt-3 font-mono text-xs text-zinc-500">{summarize(p.changes)}</p>
-          <p className="mt-3 text-zinc-600">
-            Created {new Date(p.created_at).toLocaleString()} · Retired {new Date(p.updated_at).toLocaleString()}
-          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <p className="flex-1 text-zinc-600">
+              Created {new Date(p.created_at).toLocaleString()}
+              {p.created_by && ` by ${p.created_by}`} · Retired {new Date(p.updated_at).toLocaleString()}
+            </p>
+            {p.pr_url && <RevertButton patchId={p.id} revertUrl={p.revert_pr_url} />}
+          </div>
         </li>
       ))}
     </ul>

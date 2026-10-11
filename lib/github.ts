@@ -101,3 +101,24 @@ export async function openPullRequest(repo: string, opts: { branch: string; titl
   });
   return pr.html_url as string;
 }
+
+// Undo a merged PR the way GitHub's own Revert button does: a new PR with a revert commit,
+// so later commits to the same files are kept. REST has no revert endpoint, so this uses GraphQL.
+export async function revertPullRequest(prUrl: string, body: string) {
+  const m = prUrl.match(/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/);
+  if (!m) throw new Error("not a GitHub PR URL");
+  const pr = await gh(`/repos/${m[1]}/pulls/${m[2]}`);
+  if (!pr.merged) throw new Error("the PR isn't merged yet, so there is nothing to revert");
+
+  const data = await gh("/graphql", {
+    method: "POST",
+    body: JSON.stringify({
+      query: `mutation($id: ID!, $title: String, $body: String) {
+        revertPullRequest(input: { pullRequestId: $id, title: $title, body: $body }) { revertPullRequest { url } }
+      }`,
+      variables: { id: pr.node_id, title: `Revert "${pr.title}"`, body },
+    }),
+  });
+  if (data.errors?.length) throw new Error(`GitHub revert failed: ${data.errors[0].message}`);
+  return data.data.revertPullRequest.revertPullRequest.url as string;
+}

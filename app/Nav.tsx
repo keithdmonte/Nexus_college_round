@@ -11,14 +11,15 @@ const links = [
   { href: "/log", label: "Audit log" },
 ];
 
-export default function Nav({ live }: { live: React.ReactNode }) {
+export default function Nav({ live, user }: { live: React.ReactNode; user: React.ReactNode }) {
   const path = usePathname();
+  const loggedOut = path === "/login";
   return (
     <nav className="flex h-16 shrink-0 items-center gap-8 border-b border-zinc-800 px-8 text-sm">
       <Link href="/" className="text-lg font-extrabold tracking-tight">
         patch<span className="text-accent">work</span>
       </Link>
-      {links.map((l) => (
+      {!loggedOut && links.map((l) => (
         <Link
           key={l.href}
           href={l.href}
@@ -27,7 +28,12 @@ export default function Nav({ live }: { live: React.ReactNode }) {
           {l.label}
         </Link>
       ))}
-      <div className="ml-auto">{live}</div>
+      {!loggedOut && (
+        <div className="ml-auto flex items-center gap-6">
+          {live}
+          {user}
+        </div>
+      )}
     </nav>
   );
 }

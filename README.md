@@ -34,6 +34,8 @@ Needs Node 20+, a Supabase project, an Anthropic API key and a GitHub account th
 1. Create a Supabase project.
 2. In its SQL editor run `supabase/schema.sql` (4 tables, RLS on with no public policies).
 3. Run `supabase/seed.sql`. It adds the Northfold site (`url` `http://localhost:5500`, site key `pw_live_c6a694dd6e73e913`, `github_repo` `keithdmonte/northfold_store`) and an empty v0 set live. Change `github_repo` if your store repo lives elsewhere.
+4. Already ran an older `schema.sql`? Run `supabase/002_users_and_revert.sql` once (adds who-did-what and the revert PR link).
+5. Add the people who may log in: **Authentication → Users → Add user → Create new user**, with email, password and **Auto Confirm User** ticked. The name shown in the dashboard is the part of the email before `@` (or `name` in the user's metadata). There is no sign-up page.
 
 ### 2. Environment
 
@@ -58,6 +60,8 @@ Never commit `.env.local`.
 ```bash
 npm run dev                  # http://localhost:3000
 ```
+
+Log in with one of the users from step 1.5. Every dashboard page and API route needs a login, except `/api/live` (used by the snippet on the store).
 
 ### 4. Run the demo store
 
@@ -84,8 +88,8 @@ Any site is patched by one tag in its `<head>` (in `<head>`, not before `</body>
 - **Patches** (http://localhost:3000): every non-retired patch with its status, PR link, **Make it permanent** and **Retire patch**.
 - **Editor** (`/editor`): use **Browse** to reach the element (e.g. add an item and open the bag), switch to **Select**, click it, edit in the side panel, then **Save as draft**.
 - **Publish** (`/versions`): what is live now and what is not live yet. **Publish** makes the changes live as a new version and offers to open a PR; **Preview first ↗** shows them in a separate tab (only that tab sees them). **Go back to an earlier version** switches visitors back in one click.
-- **History** (`/history`): retired patches with what they changed, their PR link and when they were retired.
-- **Audit log** (`/log`): every create, edit, publish, rollback, PR and retire.
+- **History** (`/history`): retired patches with what they changed, who made them, their PR link and when they were retired. **Revert in code →** opens a GitHub PR that undoes a merged fix.
+- **Audit log** (`/log`): every create, edit, publish, rollback, PR, revert and retire, with who did it.
 - **Make it permanent**: PATCHWORK finds the matching files in the store repo, asks Claude for the code fix, shows the diff, and opens a PR on confirm. After merging, pull the store and retire the patch.
 
 The demo script and rehearsal checklist are in [docs/DEMO.md](docs/DEMO.md).

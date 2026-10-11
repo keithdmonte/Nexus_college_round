@@ -35,7 +35,7 @@ async function Patches({ searchParams }: { searchParams: PageProps<"/">["searchP
   const [{ data: patches }, { data: live }] = await Promise.all([
     db
       .from("patches")
-      .select("id, name, status, pr_url, changes")
+      .select("id, name, status, pr_url, created_by, changes")
       .eq("site_id", site.id)
       .neq("status", "retired")
       .order("created_at"),
@@ -70,6 +70,7 @@ async function Patches({ searchParams }: { searchParams: PageProps<"/">["searchP
             name: p.name,
             status: p.status,
             prUrl: p.pr_url,
+            createdBy: p.created_by,
             summary: summarize(p.changes),
             liveNumber: live && liveIds.has(p.id) ? live.number : null,
           }}

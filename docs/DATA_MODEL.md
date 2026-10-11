@@ -28,6 +28,8 @@ Supabase (Postgres). Four tables. Final SQL lives in `supabase/schema.sql` (Phas
 | `status` | text | `draft` | `draft` / `published` / `retired` |
 | `last_broken_at` | timestamptz, nullable | | Set when a visitor's snippet could not find the element. Shown as a warning; does not change `status` (one odd visitor should not disable a patch for everyone) |
 | `pr_url` | text, nullable | | Set when the PR is opened |
+| `revert_pr_url` | text, nullable | | Set when a revert PR is opened for the merged PR (History page) |
+| `created_by` | text, nullable | keith | Display name of the logged-in user who created it |
 | `created_at`, `updated_at` | timestamptz | | |
 
 ## `versions`
@@ -49,10 +51,11 @@ Why a frozen copy: editing a patch later must not change what an old version con
 |---|---|---|
 | `id` | uuid | |
 | `site_id` | uuid | |
-| `action` | text | `created` / `edited` / `published` / `rolled_back` / `pr_opened` / `reported_broken` / `retired` |
+| `action` | text | `created` / `edited` / `published` / `rolled_back` / `pr_opened` / `revert_opened` / `reported_broken` / `retired` |
 | `patch_id` | uuid, nullable | |
 | `version_id` | uuid, nullable | |
 | `details` | jsonb | |
+| `actor` | text, nullable | Display name of who did it; null for `reported_broken` (sent by visitors' browsers) |
 | `created_at` | timestamptz | |
 
 ## Patch format

@@ -62,6 +62,8 @@ Both sides check `event.origin` on every message: `editor.js` accepts only the d
 | `/api/publish` | POST | dashboard | Create version, set live |
 | `/api/rollback` | POST | dashboard | Set live to any version (back or forward) |
 | `/api/pr` | POST | dashboard | Propose edits (diff) / open PR |
+| `/api/login`, `/api/logout` | POST | login page, nav | Check email + password with Supabase Auth, set / clear the signed session cookie |
+| `/api/revert` | POST | History page | Open a GitHub PR that reverts a patch's merged PR (GitHub GraphQL `revertPullRequest`) |
 | `/api/suggest` | POST | dashboard | Natural-language fix: Claude reads the selected element, the problem description and the site's matching source files, returns form values (nothing saved) |
 
 ## Folder structure
@@ -74,6 +76,7 @@ nexus-patchwork/
 │   ├── versions/page.tsx         # Version list + Rollback
 │   ├── history/page.tsx          # Retired patches
 │   ├── log/page.tsx              # Audit log
+│   ├── login/page.tsx            # Email + password login
 │   └── api/
 │       ├── live/route.ts
 │       ├── patches/route.ts
@@ -85,6 +88,8 @@ nexus-patchwork/
 │   ├── json.ts                   # JSON-only body reader, safe-attribute rule
 │   ├── workingSet.ts             # Non-retired patches: shared by preview and publish
 │   ├── summarize.ts              # One-line summary of a patch's changes
+│   ├── session.ts                # Signed login cookie (also used by proxy.ts)
+│   ├── auth.ts                   # currentUser() for pages and API routes
 │   ├── github.ts
 │   └── llm.ts
 ├── public/

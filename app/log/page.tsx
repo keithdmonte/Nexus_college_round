@@ -21,6 +21,7 @@ type Row = {
   action: string;
   created_at: string;
   details: Record<string, unknown>;
+  actor: string | null;
   patches: { name: string } | null;
 };
 
@@ -30,6 +31,7 @@ const icons: Record<string, string> = {
   published: "↑",
   rolled_back: "↺",
   pr_opened: "PR",
+  revert_opened: "↶",
   retired: "✓",
   reported_broken: "!",
 };
@@ -40,6 +42,7 @@ const labels: Record<string, string> = {
   published: "Published",
   rolled_back: "Rolled back",
   pr_opened: "PR opened",
+  revert_opened: "Revert PR opened",
   retired: "Retired",
   reported_broken: "Reported broken",
 };
@@ -64,7 +67,7 @@ async function Log() {
 
   const { data: rows } = await db
     .from("audit_log")
-    .select("id, action, created_at, details, patches(name)")
+    .select("id, action, created_at, details, actor, patches(name)")
     .eq("site_id", site.id)
     .order("created_at", { ascending: false })
     .limit(200)
@@ -85,6 +88,7 @@ async function Log() {
           </span>
           <span className="font-semibold">{labels[r.action] ?? r.action.replace("_", " ")}</span>
           <span className="text-zinc-400">· {describe(r)}</span>
+          {r.actor && <span className="text-zinc-500">by {r.actor}</span>}
           <span className="ml-2 text-zinc-600">{new Date(r.created_at).toLocaleString()}</span>
         </li>
       ))}

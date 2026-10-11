@@ -12,6 +12,7 @@ export type CardPatch = {
   prUrl: string | null;
   liveNumber: number | null; // live version number if this patch is in it
   status: string;
+  createdBy: string | null;
 };
 
 const STEPS = ["Draft", "Preview", "Live", "PR", "Retired"];
@@ -64,7 +65,10 @@ export default function PatchCard({ patch, previewUrl, autoStart }: { patch: Car
   return (
     <li className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
       <div className="flex items-center gap-4">
-        <p className="flex-1 text-lg font-semibold">{patch.name}</p>
+        <p className="flex-1 text-lg font-semibold">
+          {patch.name}
+          {patch.createdBy && <span className="ml-2 text-sm font-normal text-zinc-500">by {patch.createdBy}</span>}
+        </p>
         <span className="font-mono text-xs text-zinc-500">{patch.summary}</span>
         {current < 4 && <RetireButton patchId={patch.id} />}
       </div>

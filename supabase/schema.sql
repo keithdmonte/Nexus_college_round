@@ -22,6 +22,8 @@ create table patches (
   status text not null default 'draft' check (status in ('draft', 'published', 'retired')),
   last_broken_at timestamptz,
   pr_url text,
+  revert_pr_url text,
+  created_by text, -- display name of the logged-in user
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -42,10 +44,11 @@ alter table sites
 create table audit_log (
   id uuid primary key default gen_random_uuid(),
   site_id uuid not null references sites(id) on delete cascade,
-  action text not null check (action in ('created', 'edited', 'published', 'rolled_back', 'pr_opened', 'reported_broken', 'retired')),
+  action text not null check (action in ('created', 'edited', 'published', 'rolled_back', 'pr_opened', 'revert_opened', 'reported_broken', 'retired')),
   patch_id uuid references patches(id) on delete set null,
   version_id uuid references versions(id) on delete set null,
   details jsonb not null default '{}',
+  actor text, -- who did it (display name); null for visitor reports
   created_at timestamptz not null default now()
 );
 

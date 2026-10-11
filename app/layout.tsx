@@ -4,6 +4,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import Nav from "./Nav";
 import LiveBadge from "./LiveBadge";
+import UserMenu from "./UserMenu";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           live={
             <Suspense>
               <LiveBadge />
+            </Suspense>
+          }
+          user={
+            <Suspense>
+              <UserMenu />
             </Suspense>
           }
         />

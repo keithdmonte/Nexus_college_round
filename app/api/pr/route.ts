@@ -1,4 +1,5 @@
 import { db } from "@/lib/supabase";
+import { currentUser, unauthorized } from "@/lib/auth";
 import { readJson } from "@/lib/json";
 import { cluesOf, openPullRequest, rankFiles, readFiles } from "@/lib/github";
 import { applyEdits, proposeEdits, type Edit } from "@/lib/llm";
@@ -10,6 +11,8 @@ function validEdits(x: unknown): x is Edit[] {
 // POST { patch_id, action: "propose" } -> Claude's edits, validated, with before/after per edit.
 // POST { patch_id, action: "open", edits, summary } -> re-validate against the repo, open the PR.
 export async function POST(request: Request) {
+  const user = await currentUser();
+  if (!user) return unauthorized();
   const body = await readJson(request);
   if (typeof body?.patch_id !== "string") return Response.json({ error: "patch_id required" }, { status: 400 });
 
@@ -52,6 +55,7 @@ export async function POST(request: Request) {
         action: "pr_opened",
         patch_id: patch.id,
         details: { name: patch.name, pr_url: prUrl, files: result.files.map((f) => f.path) },
+        actor: user.name,
       });
       return Response.json({ pr_url: prUrl });
     }
