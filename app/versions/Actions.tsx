@@ -4,30 +4,32 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAction } from "@/app/useAction";
 
-export function PublishButton({ siteId, next, previewUrl }: { siteId: string; next: number; previewUrl: string }) {
+// pending: there are changes to publish. Stays mounted after publishing so the PR prompt survives the refresh.
+export function PublishButton({ siteId, next, previewUrl, pending }: { siteId: string; next: number; previewUrl: string; pending: boolean }) {
   const { busy, error, run } = useAction();
   const router = useRouter();
-  const [note, setNote] = useState("");
   const [unfixed, setUnfixed] = useState<Array<{ id: string; name: string }>>([]);
   const [prompt, setPrompt] = useState(false);
 
   async function publish() {
-    const data = await run("/api/publish", { site_id: siteId, note });
+    const data = await run("/api/publish", { site_id: siteId });
     if (!data) return;
-    setNote("");
     setUnfixed(data.unfixed);
     setPrompt(data.unfixed.length > 0);
   }
 
   return (
     <>
-      <a href={previewUrl} target="_blank" rel="noreferrer" className="text-zinc-300 underline underline-offset-4">
-        Preview ↗
-      </a>
-      <input className="input w-56" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
-      <button onClick={publish} disabled={busy} className="btn">
-        {busy ? "Publishing…" : `Publish v${next} →`}
-      </button>
+      {pending && (
+        <>
+          <a href={previewUrl} target="_blank" rel="noreferrer" className="text-zinc-300 underline underline-offset-4">
+            Preview ↗
+          </a>
+          <button onClick={publish} disabled={busy} className="btn">
+            {busy ? "Publishing…" : `Publish as v${next} →`}
+          </button>
+        </>
+      )}
       {error && <span className="text-red-400">Publish failed: {error}</span>}
       {prompt && (
         <div className="mt-2 flex w-full items-center gap-3 rounded-xl border border-accent/40 bg-accent/10 p-4">
@@ -43,7 +45,7 @@ export function PublishButton({ siteId, next, previewUrl }: { siteId: string; ne
   );
 }
 
-export function RollbackButton({ versionId, number }: { versionId: string; number: number }) {
+export function RollbackButton({ versionId }: { versionId: string }) {
   const { busy, error, run } = useAction();
   return (
     <>
@@ -53,7 +55,7 @@ export function RollbackButton({ versionId, number }: { versionId: string; numbe
         disabled={busy}
         className="font-semibold text-zinc-200 underline underline-offset-4 hover:text-white disabled:opacity-40"
       >
-        {busy ? "Switching…" : `Make v${number} live`}
+        {busy ? "Switching…" : "Use this"}
       </button>
     </>
   );
