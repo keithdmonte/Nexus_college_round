@@ -5,13 +5,12 @@ import { db } from "@/lib/supabase";
 import { workingSet } from "@/lib/workingSet";
 import { PublishButton, RollbackButton } from "./Actions";
 
-export const metadata: Metadata = { title: "Versions" };
+export const metadata: Metadata = { title: "Publish" };
 
 export default function VersionsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl p-10 text-sm">
-      <h1 className="text-4xl font-extrabold tracking-tight">Versions</h1>
-      <p className="mt-1 mb-8 text-zinc-500">What visitors see now, and every earlier version.</p>
+      <h1 className="mb-8 text-4xl font-extrabold tracking-tight">Publish</h1>
       <Suspense fallback={<p className="text-zinc-500">Loading…</p>}>
         <Versions />
       </Suspense>
@@ -20,8 +19,6 @@ export default function VersionsPage() {
 }
 
 type Frozen = { id: string; name: string };
-
-const fixes = (n: number) => (n === 0 ? "no fixes" : n === 1 ? "1 fix" : `${n} fixes`);
 
 // Single-site build: the first (only) site.
 async function Versions() {
@@ -40,7 +37,6 @@ async function Versions() {
 
   const previewUrl = new URL(site.url);
   previewUrl.searchParams.set("pw_preview", site.preview_token);
-  const next = (versions?.[0]?.number ?? -1) + 1;
   const live = versions?.find((v) => v.id === site.live_version_id);
   const liveSet = (live?.patches ?? []) as Frozen[];
 
@@ -51,47 +47,48 @@ async function Versions() {
     ...liveSet.filter((p) => !working?.some((w) => w.id === p.id)).map((p) => `${p.name} (removed)`),
   ];
 
+  // Earlier versions to go back to: newest first, skipping any that would read the same as live or a newer one.
+  const label = (set: Frozen[]) => (set.length ? set.map((p) => p.name).join(", ") : "Original site, no fixes");
+  const seen = new Set([label(liveSet)]);
+  const earlier = (versions ?? []).filter((v) => {
+    const key = label(v.patches as Frozen[]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   return (
     <>
       <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <p className="text-lg font-semibold">
-          Visitors see: {live ? `v${live.number} · ${fixes(liveSet.length)}` : "the original site"}
+        <p className="text-xs uppercase tracking-widest text-zinc-500">Live now</p>
+        <p className="mt-1 text-lg font-semibold">
+          {label(liveSet)}
         </p>
-        {liveSet.length > 0 && <p className="mt-1 text-zinc-400">{liveSet.map((p) => p.name).join(", ")}</p>}
-        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-zinc-800 pt-5">
-          {pending.length ? (
-            <p className="w-full text-zinc-300">
-              {pending.length} change(s) not live yet: {pending.join(", ")}
-            </p>
-          ) : (
-            <p className="text-zinc-400">
-              <span className="text-blue-300">✓</span> Everything is live. Nothing to publish.
-            </p>
-          )}
-          <PublishButton siteId={site.id} next={next} previewUrl={previewUrl.toString()} pending={pending.length > 0} />
-        </div>
       </section>
 
-      <div className="mt-10 mb-3 flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold">Past versions</h2>
-        <p className="text-zinc-500">Switch visitors to any of them in one click.</p>
+      {pending.length > 0 && (
+        <section className="mt-4 rounded-xl border border-accent/40 bg-accent/10 p-6">
+          <p className="text-xs uppercase tracking-widest text-blue-300">Not live yet</p>
+          <p className="mt-1 text-lg font-semibold">{pending.join(", ")}</p>
+        </section>
+      )}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <PublishButton siteId={site.id} previewUrl={previewUrl.toString()} pending={pending.length > 0} />
       </div>
-      <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
-        {versions?.map((v) => {
-          const names = (v.patches as Frozen[]).map((p) => p.name);
-          const isLive = v.id === site.live_version_id;
-          return (
-            <li key={v.id} className={`flex items-center gap-4 px-5 py-3 ${isLive ? "bg-accent/10" : ""}`}>
-              <span className={`w-10 font-bold ${isLive ? "text-blue-300" : "text-zinc-500"}`}>v{v.number}</span>
-              <span className="flex-1 text-zinc-300">{v.note ?? (names.length ? names.join(", ") : "No fixes")}</span>
-              <span className="text-xs text-zinc-600">{new Date(v.created_at).toLocaleString()}</span>
-              <span className="w-20 text-right">
-                {isLive ? <span className="text-xs font-bold text-blue-300">● LIVE</span> : <RollbackButton versionId={v.id} />}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+
+      {earlier.length > 0 && (
+        <details className="mt-10">
+          <summary className="cursor-pointer text-zinc-400 hover:text-zinc-200">Go back to an earlier version</summary>
+          <ul className="mt-3 divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+            {earlier.map((v) => (
+              <li key={v.id} className="flex items-center gap-4 px-5 py-3">
+                <span className="flex-1 text-zinc-300">{label(v.patches as Frozen[])}</span>
+                <RollbackButton versionId={v.id} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </>
   );
 }

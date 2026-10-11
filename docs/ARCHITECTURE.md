@@ -43,7 +43,7 @@ Both sides check `event.origin` on every message: `editor.js` accepts only the d
 **Publish / rollback**
 - Publish: copy the working set (all `draft` + `published` patches) into a new `versions` row, mark them `published`, set `sites.live_version_id`
 - Rollback: set `sites.live_version_id` to any version, earlier or later. Nothing is rebuilt.
-- Both live on the versions page (`/versions`), which also links to the preview URL.
+- Both live on the Publish page (`/versions`), which also links to the preview URL.
 
 **Patch to PR**
 1. List repo files via GitHub API, skip `node_modules`, build output, minified files

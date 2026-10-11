@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAction } from "@/app/useAction";
 
 // pending: there are changes to publish. Stays mounted after publishing so the PR prompt survives the refresh.
-export function PublishButton({ siteId, next, previewUrl, pending }: { siteId: string; next: number; previewUrl: string; pending: boolean }) {
+export function PublishButton({ siteId, previewUrl, pending }: { siteId: string; previewUrl: string; pending: boolean }) {
   const { busy, error, run } = useAction();
   const router = useRouter();
   const [unfixed, setUnfixed] = useState<Array<{ id: string; name: string }>>([]);
@@ -22,12 +22,12 @@ export function PublishButton({ siteId, next, previewUrl, pending }: { siteId: s
     <>
       {pending && (
         <>
-          <a href={previewUrl} target="_blank" rel="noreferrer" className="text-zinc-300 underline underline-offset-4">
-            Preview ↗
-          </a>
           <button onClick={publish} disabled={busy} className="btn">
-            {busy ? "Publishing…" : `Publish as v${next} →`}
+            {busy ? "Publishing…" : "Publish →"}
           </button>
+          <a href={previewUrl} target="_blank" rel="noreferrer" className="text-zinc-300 underline underline-offset-4">
+            Preview first ↗
+          </a>
         </>
       )}
       {error && <span className="text-red-400">Publish failed: {error}</span>}
@@ -55,7 +55,7 @@ export function RollbackButton({ versionId }: { versionId: string }) {
         disabled={busy}
         className="font-semibold text-zinc-200 underline underline-offset-4 hover:text-white disabled:opacity-40"
       >
-        {busy ? "Switching…" : "Use this"}
+        {busy ? "Switching…" : "Go back"}
       </button>
     </>
   );
